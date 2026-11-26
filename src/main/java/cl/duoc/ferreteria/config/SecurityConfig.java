@@ -1,16 +1,17 @@
 package cl.duoc.ferreteria.config;
 
 import cl.duoc.ferreteria.filters.JwtAuthenticationFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
-import jakarta.servlet.DispatcherType;
 
 @Configuration
 public class SecurityConfig {
@@ -26,10 +27,19 @@ public class SecurityConfig {
             throws Exception {
 
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
+                        .requestMatchers(
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                        ).permitAll()
 
                         .requestMatchers(
                                 HttpMethod.GET,
@@ -39,9 +49,7 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/v1/productos",
-                                "/api/v1/productos/**"
-                        ).hasRole("ADMIN")
-                        .requestMatchers(
+                                "/api/v1/productos/**",
                                 "/api/v1/usuarios",
                                 "/api/v1/usuarios/**"
                         ).hasRole("ADMIN")
@@ -55,12 +63,7 @@ public class SecurityConfig {
                                 "/api/v1/mensajes",
                                 "/api/v1/mensajes/**"
                         ).hasRole("ADMIN")
-                        .requestMatchers(
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**"
-                        ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
