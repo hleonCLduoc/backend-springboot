@@ -41,7 +41,26 @@ public class SecurityConfig {
                                 "/api/v1/productos",
                                 "/api/v1/productos/**"
                         ).hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/v1/usuarios",
+                                "/api/v1/usuarios/**"
+                        ).hasRole("ADMIN")
 
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/mensajes"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/mensajes",
+                                "/api/v1/mensajes/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
