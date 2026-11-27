@@ -30,6 +30,7 @@ public class ApplicationConfig {
                     .username(usuario.getEmail())
                     .password(usuario.getPassword())
                     .roles(usuario.getRol().name())
+                    .disabled(!usuario.getActivo() || usuario.getEliminado())
                     .build();
         };
     }

@@ -71,6 +71,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext()
                             .setAuthentication(authentication);
+                } else {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Sesión inválida");
+                    return;
                 }
             }
         } catch (JwtException | IllegalArgumentException

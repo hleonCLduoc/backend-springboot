@@ -17,6 +17,10 @@ public class RegistroDTO {
     private String apellido;
 
     @NotBlank
+    @Size(max = 12)
+    private String rut;
+
+    @NotBlank
     @Email
     private String email;
 

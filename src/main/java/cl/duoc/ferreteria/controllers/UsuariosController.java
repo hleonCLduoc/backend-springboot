@@ -1,6 +1,7 @@
 package cl.duoc.ferreteria.controllers;
 
-import cl.duoc.ferreteria.dtos.RegistroDTO;
+import cl.duoc.ferreteria.dtos.ClienteDTO;
+import org.springframework.security.core.Authentication;
 import cl.duoc.ferreteria.dtos.UserDTO;
 import cl.duoc.ferreteria.services.UserService;
 import jakarta.validation.Valid;
@@ -20,6 +21,11 @@ public class UsuariosController {
         this.userService = userService;
     }
 
+    @GetMapping("/mi-cuenta")
+    public UserDTO miCuenta(Authentication authentication) {
+        return userService.miCuenta(authentication.getName());
+    }
+
     @GetMapping
     public List<UserDTO> listarUsuarios() {
         return userService.listarUsuarios();
@@ -32,16 +38,16 @@ public class UsuariosController {
 
     @PostMapping
     public ResponseEntity<UserDTO> crearUsuario(
-            @Valid @RequestBody RegistroDTO datos) {
+            @Valid @RequestBody ClienteDTO datos) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userService.registrarUsuario(datos));
+                .body(userService.crearCliente(datos));
     }
 
     @PutMapping("/{id}")
     public UserDTO actualizarUsuario(
             @PathVariable Long id,
-            @Valid @RequestBody RegistroDTO datos) {
+            @Valid @RequestBody ClienteDTO datos) {
 
         return userService.actualizarUsuario(id, datos);
     }

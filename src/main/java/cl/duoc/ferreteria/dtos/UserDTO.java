@@ -14,4 +14,8 @@ public class UserDTO {
     private String apellido;
     private Rol rol;
     private String token;
+    private String rut;
+    private Long lineaCredito;
+    private Long saldoUtilizado;
+    private Boolean activo;
 }

@@ -30,4 +30,22 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Rol rol;
+
+    @Column(unique = true, length = 12)
+    private String rut;
+
+    @Column(nullable = false, columnDefinition = "bigint default 100000")
+    private Long lineaCredito = 100000L;
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long saldoUtilizado = 0L;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean activo = true;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean eliminado = false;
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long versionSesion = 0L;
 }
