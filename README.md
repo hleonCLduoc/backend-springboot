@@ -35,3 +35,11 @@ Publicar primero el backend y comprobar `/v3/api-docs`; después publicar el fro
 ```
 
 Las pruebas usan bases H2 aisladas, sin credenciales ni conexión a Supabase. Cubren registro sin elevación de privilegios, duplicados y validación de RUT, permisos, edición sin cambiar contraseña, cupos, bloqueo/reactivación, revocación de JWT, baja lógica y actualización del esquema anterior preservando datos.
+
+## Catálogo y contacto
+
+El catálogo GET es público. POST, PUT, DELETE e importación de productos requieren ADMIN. Los precios y stock deben ser enteros no negativos. `POST /api/v1/productos/importar` recibe una lista de hasta 500 artículos y agrega solo códigos que no existan. Marca y subcategoría preservan los datos del catálogo original.
+
+El contacto se envía sin sesión con POST /api/v1/mensajes; solo ADMIN puede consultar sus mensajes con GET.
+
+En docs están la colección Postman, el recorrido de verificación y la guía de presentación EP3. Las pruebas de Java comprueban además catálogo público, CRUD y validación de productos, importación sin sobrescritura, permisos de contacto y preflight CORS de Vercel.

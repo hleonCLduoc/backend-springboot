@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.constraints.NotEmpty;
 
 @RestController
 @RequestMapping("/api/v1/productos")
@@ -18,11 +21,20 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
+    @PostMapping("/importar")
+    public ResponseEntity<List<Producto>> importarProductos(
+            @RequestBody @NotEmpty List<@Valid Producto> productos) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(productoService.importarProductos(productos));
+    }
+
+    @SecurityRequirements
     @GetMapping
     public List<Producto> listarProductos() {
         return productoService.listarProductos();
     }
 
+    @SecurityRequirements
     @GetMapping("/{id}")
     public ResponseEntity<Producto> buscarProducto(@PathVariable String id) {
         return productoService.buscarProducto(id)
@@ -31,7 +43,7 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
+    public ResponseEntity<Producto> crearProducto(@Valid @RequestBody Producto producto) {
         if (producto.getId() == null || producto.getId().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
@@ -47,7 +59,7 @@ public class ProductoController {
     @PutMapping("/{id}")
     public ResponseEntity<Producto> actualizarProducto(
             @PathVariable String id,
-            @RequestBody Producto producto) {
+            @Valid @RequestBody Producto producto) {
 
         if (productoService.buscarProducto(id).isEmpty()) {
             return ResponseEntity.notFound().build();

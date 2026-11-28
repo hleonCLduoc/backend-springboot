@@ -6,12 +6,14 @@ import cl.duoc.ferreteria.dtos.RegistroDTO;
 import cl.duoc.ferreteria.dtos.UserDTO;
 import cl.duoc.ferreteria.services.UserService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@SecurityRequirements
 @RequestMapping("/api/v1/auth")
 public class UsersController {
 

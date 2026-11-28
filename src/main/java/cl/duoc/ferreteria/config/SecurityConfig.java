@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/v1/productos",
                                 "/api/v1/productos/**"
-                        ).hasAnyRole("USER", "ADMIN")
+                        ).permitAll()
 
                         .requestMatchers(
                                 "/api/v1/productos",

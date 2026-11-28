@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 class ClientesIntegrationTests {
     @Autowired UserRepository repository;
+    @Autowired cl.duoc.ferreteria.repositories.ProductoRepository productos;
+    @Autowired cl.duoc.ferreteria.repositories.MensajeContactoRepository mensajes;
     @Autowired PasswordEncoder encoder;
     final HttpClient http = HttpClient.newHttpClient();
     final ObjectMapper json = new ObjectMapper();
@@ -34,6 +36,8 @@ class ClientesIntegrationTests {
     @BeforeEach
     void preparar() throws Exception {
         repository.deleteAll();
+        productos.deleteAll();
+        mensajes.deleteAll();
         User admin = new User();
         admin.setNombre("Admin"); admin.setApellido("Pruebas");
         admin.setEmail("admin@example.com"); admin.setPassword(encoder.encode("Admin1234"));
@@ -140,5 +144,63 @@ class ClientesIntegrationTests {
         assertEquals(200, pedir("PUT", "/api/v1/usuarios/" + id, cambios, adminToken).statusCode());
         assertEquals(401, pedir("GET", "/api/v1/usuarios/mi-cuenta", null, token).statusCode());
         login("ana@example.com", "NuevaClave123");
+    }
+
+    Map<String, Object> producto(String id, int precio) {
+        return new HashMap<>(Map.of("id", id, "nombre", "Taladro", "categoria", "Herramientas",
+                "precio", precio, "stock", 5, "disponible", true, "imagen", "/taladro.jpg"));
+    }
+
+    @Test void catalogoPublicoYCrudDeProductosSoloAdmin() throws Exception {
+        assertEquals(200, pedir("GET", "/api/v1/productos", null, null).statusCode());
+        crear(); String token = login("ana@example.com", "Prueba1234");
+        assertEquals(403, pedir("POST", "/api/v1/productos", producto("QA001", 1000), token).statusCode());
+        assertEquals(201, pedir("POST", "/api/v1/productos", producto("QA001", 1000), adminToken).statusCode());
+        assertEquals(200, pedir("GET", "/api/v1/productos/QA001", null, null).statusCode());
+        assertEquals(409, pedir("POST", "/api/v1/productos", producto("QA001", 1000), adminToken).statusCode());
+        assertEquals(200, pedir("PUT", "/api/v1/productos/QA001", producto("QA001", 2000), adminToken).statusCode());
+        assertEquals(400, pedir("PUT", "/api/v1/productos/QA001", producto("QA001", -1), adminToken).statusCode());
+        var invalido = producto("QA002", 1000); invalido.put("stock", -2);
+        assertEquals(400, pedir("POST", "/api/v1/productos", invalido, adminToken).statusCode());
+        assertEquals(2000, productos.findById("QA001").orElseThrow().getPrecio());
+        assertEquals(204, pedir("DELETE", "/api/v1/productos/QA001", null, adminToken).statusCode());
+        assertEquals(404, pedir("GET", "/api/v1/productos/QA001", null, null).statusCode());
+    }
+
+    @Test void importarCatalogoNoSobrescribeProductosExistentes() throws Exception {
+        pedir("POST", "/api/v1/productos", producto("QA001", 2000), adminToken);
+        var lista = List.of(producto("QA001", 1000), producto("QA002", 3000));
+        assertEquals(201, pedir("POST", "/api/v1/productos/importar", lista, adminToken).statusCode());
+        assertEquals(2000, productos.findById("QA001").orElseThrow().getPrecio());
+        assertEquals(3000, productos.findById("QA002").orElseThrow().getPrecio());
+        assertEquals(201, pedir("POST", "/api/v1/productos/importar", lista, adminToken).statusCode());
+        assertEquals(2, productos.count());
+    }
+
+    @Test void contactoPublicoYLecturaSoloAdmin() throws Exception {
+        var mensaje = Map.of("nombre", "Ana", "email", "ana@example.com", "mensaje", "Consulta de materiales");
+        assertEquals(201, pedir("POST", "/api/v1/mensajes", mensaje, null).statusCode());
+        assertEquals(401, pedir("GET", "/api/v1/mensajes", null, null).statusCode());
+        crear(); String token = login("ana@example.com", "Prueba1234");
+        assertEquals(403, pedir("GET", "/api/v1/mensajes", null, token).statusCode());
+        var respuesta = pedir("GET", "/api/v1/mensajes", null, adminToken);
+        assertEquals(200, respuesta.statusCode());
+        assertTrue(respuesta.body().contains("Consulta de materiales"));
+    }
+
+    @Test void corsPermiteVercelYRechazaOtroOrigen() throws Exception {
+        var buena = HttpRequest.newBuilder(URI.create("http://localhost:18083/api/v1/productos"))
+                .header("Origin", "https://ferreterialosmaestros.vercel.app")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Access-Control-Request-Headers", "authorization")
+                .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+        var respuesta = http.send(buena, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, respuesta.statusCode());
+        assertEquals("https://ferreterialosmaestros.vercel.app", respuesta.headers().firstValue("Access-Control-Allow-Origin").orElseThrow());
+        var mala = HttpRequest.newBuilder(URI.create("http://localhost:18083/api/v1/productos"))
+                .header("Origin", "https://otro.example.com")
+                .header("Access-Control-Request-Method", "GET")
+                .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+        assertEquals(403, http.send(mala, HttpResponse.BodyHandlers.ofString()).statusCode());
     }
 }
